@@ -1,11 +1,11 @@
-import { Users, GraduationCap, UserCircle, Shield, FileQuestion, Award, Lock, BarChart3, Mail } from "lucide-react";
+import { Users, GraduationCap, UserCircle, Shield, Award, Lock, BarChart3, Mail } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
   selectedPosition: string;
   onSelectPosition: (position: string) => void;
-  view: "curriculum" | "profile" | "admin" | "quiz-example" | "certificate-example" | "reports-example" | "email-example";
-  onViewChange: (view: "curriculum" | "profile" | "admin" | "quiz-example" | "certificate-example" | "reports-example" | "email-example") => void;
+  view: "curriculum" | "profile" | "admin" | "certificate-example" | "reports-example" | "email-example";
+  onViewChange: (view: "curriculum" | "profile" | "admin" | "certificate-example" | "reports-example" | "email-example") => void;
   isTrackLocked: (positionId: string) => boolean;
   selectedTrack: string | null;
 }
@@ -120,17 +120,6 @@ export function Sidebar({
               Examples
             </h2>
             <div className="space-y-1">
-              <button
-                onClick={() => onViewChange("quiz-example")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
-                  view === "quiz-example"
-                    ? "bg-[#c6930a] text-black"
-                    : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
-                }`}
-              >
-                <FileQuestion className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">Quiz Example</span>
-              </button>
               <button
                 onClick={() => onViewChange("certificate-example")}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${

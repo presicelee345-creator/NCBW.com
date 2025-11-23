@@ -16,7 +16,6 @@ type ViewType =
   | "curriculum"
   | "profile"
   | "admin"
-  | "quiz-example"
   | "certificate-example"
   | "reports-example"
   | "email-example";
@@ -83,103 +82,6 @@ export default function App() {
             <ReportsExample />
           ) : view === "email-example" ? (
             <EmailExample />
-          ) : view === "quiz-example" ? (
-            <div className="p-8">
-              <div className="max-w-4xl mx-auto">
-                <h2 className="text-3xl mb-4 text-[#c6930a]">
-                  Quiz Example
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  This is an example of how quizzes appear after
-                  completing course modules. Each quiz contains
-                  5 questions designed to test your
-                  understanding of the material.
-                </p>
-                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl mb-2">
-                        Leadership & Strategic Visioning
-                        Assessment
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Duration: 15 mins • 5 Questions
-                      </p>
-                      <div className="h-2 bg-gray-200 rounded-full mb-6">
-                        <div
-                          className="h-full bg-[#c6930a] rounded-full"
-                          style={{ width: "40%" }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="border-t pt-4">
-                        <p className="mb-4">Question 2 of 5</p>
-                        <h4 className="mb-4">
-                          Which approach is most effective for
-                          leadership development?
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="quiz-example"
-                                className="text-[#c6930a]"
-                              />
-                              <span>Working in isolation</span>
-                            </label>
-                          </div>
-                          <div className="p-3 rounded-lg border border-[#c6930a] bg-[#c6930a]/5">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="quiz-example"
-                                checked
-                                className="text-[#c6930a]"
-                              />
-                              <span className="text-[#c6930a]">
-                                Continuous learning and practice
-                              </span>
-                            </label>
-                          </div>
-                          <div className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="quiz-example"
-                                className="text-[#c6930a]"
-                              />
-                              <span>Avoiding challenges</span>
-                            </label>
-                          </div>
-                          <div className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="quiz-example"
-                                className="text-[#c6930a]"
-                              />
-                              <span>Resisting change</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between pt-4 border-t">
-                      <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Previous
-                      </button>
-                      <button className="px-4 py-2 bg-[#c6930a] text-white rounded-lg hover:bg-[#a37808]">
-                        Next Question
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           ) : view === "certificate-example" ? (
             <div className="p-8">
               <div className="max-w-4xl mx-auto">

@@ -28,6 +28,8 @@ export function AdminDashboard() {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [currentEmailType, setCurrentEmailType] = useState<"welcome" | "weekly_reminder" | "individual_reminder" | "quiz_passed" | "certificate" | "at_risk">("individual_reminder");
   const [currentRecipient, setCurrentRecipient] = useState<{ name: string; email: string; track: string } | null>(null);
+  const [isEditingEmailTemplate, setIsEditingEmailTemplate] = useState(false);
+  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<"welcome" | "weekly_reminder" | "individual_reminder" | "quiz_passed" | "certificate" | "at_risk">("welcome");
 
   // Track editing state
   const [trackName, setTrackName] = useState("");
@@ -198,6 +200,19 @@ export function AdminDashboard() {
     toast.success("Certificate deleted successfully!");
   };
 
+  const handleEditEmailTemplate = (templateType: typeof selectedEmailTemplate) => {
+    setSelectedEmailTemplate(templateType);
+    setCurrentRecipient(null);
+    setCurrentEmailType(templateType);
+    setIsEmailDialogOpen(true);
+  };
+
+  const handleSendBulkEmail = (emailType: typeof currentEmailType) => {
+    setCurrentRecipient(null);
+    setCurrentEmailType(emailType);
+    setIsEmailDialogOpen(true);
+  };
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex justify-between items-center">
@@ -205,21 +220,15 @@ export function AdminDashboard() {
           <h1 className="text-3xl">Administrator Dashboard</h1>
           <p className="text-gray-600 mt-1">Manage tracks, quizzes, trainees, and generate reports</p>
         </div>
-        <Button 
-          onClick={handleSendWeeklyReminders}
-          className="bg-[#c6930a] hover:bg-[#a37808] gap-2"
-        >
-          <Mail className="h-4 w-4" />
-          Send Weekly Reminders
-        </Button>
       </div>
 
       <Tabs defaultValue="trainees" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="trainees">Trainees</TabsTrigger>
           <TabsTrigger value="tracks">Manage Tracks</TabsTrigger>
           <TabsTrigger value="quizzes">Manage Quizzes</TabsTrigger>
           <TabsTrigger value="certificates">Certificates</TabsTrigger>
+          <TabsTrigger value="emails">Emails</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
@@ -497,9 +506,270 @@ export function AdminDashboard() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="emails" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[#c6930a]">Email Management</CardTitle>
+              <CardDescription>
+                Customize and send email templates to trainees
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Button 
+                    onClick={handleSendWeeklyReminders}
+                    className="bg-[#c6930a] hover:bg-[#a37808] gap-2 h-auto py-4"
+                  >
+                    <Mail className="h-5 w-5" />
+                    <div className="text-left">
+                      <div>Send Weekly Reminders</div>
+                      <div className="text-xs opacity-90">Send to all active trainees</div>
+                    </div>
+                  </Button>
+                  <Button 
+                    onClick={() => handleSendBulkEmail("at_risk")}
+                    variant="outline"
+                    className="gap-2 h-auto py-4"
+                  >
+                    <Mail className="h-5 w-5" />
+                    <div className="text-left">
+                      <div>Re-engage At-Risk Trainees</div>
+                      <div className="text-xs text-gray-600">Send to inactive trainees</div>
+                    </div>
+                  </Button>
+                </div>
+
+                {/* Email Templates Section */}
+                <div className="border-t pt-6">
+                  <h3 className="mb-4">Email Templates</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    View and customize email templates for different scenarios
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {/* Welcome Email */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>Welcome Email</h4>
+                            <Badge variant="outline" className="text-xs">
+                              Onboarding
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Sent when a trainee first enrolls in a leadership track
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("welcome")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-[#c6930a] hover:bg-[#a37808]"
+                            onClick={() => handleSendBulkEmail("welcome")}
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Weekly Reminder */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>Weekly Reminder</h4>
+                            <Badge variant="outline" className="text-xs">
+                              Engagement
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            General weekly progress update for all active trainees
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("weekly_reminder")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-[#c6930a] hover:bg-[#a37808]"
+                            onClick={() => handleSendBulkEmail("weekly_reminder")}
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Individual Reminder */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>Individual Reminder</h4>
+                            <Badge variant="outline" className="text-xs">
+                              Follow-up
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Personalized reminder for individual trainees
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("individual_reminder")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quiz Passed Notification */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>Quiz Passed Notification</h4>
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              Achievement
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Congratulatory email sent when trainee passes a quiz
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("quiz_passed")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Certificate Award */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>Certificate Award</h4>
+                            <Badge variant="outline" className="text-xs bg-[#c6930a]/10 text-[#c6930a] border-[#c6930a]/30">
+                              Completion
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Sent when a trainee completes an entire leadership track
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("certificate")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* At-Risk Alert */}
+                    <div className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4>At-Risk Alert</h4>
+                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                              Re-engagement
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Sent to trainees who haven't been active recently
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEmailTemplate("at_risk")}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit Template
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-[#c6930a] hover:bg-[#a37808]"
+                            onClick={() => handleSendBulkEmail("at_risk")}
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="reports" className="space-y-4">
-          <ReportsExample />
-          <CustomReportBuilder />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[#c6930a]">Reports Dashboard</CardTitle>
+              <CardDescription>
+                View analytics, generate custom reports, and download comprehensive data exports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="analytics" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="analytics">
+                    📊 Analytics & Insights
+                  </TabsTrigger>
+                  <TabsTrigger value="custom">
+                    📝 Custom Report Builder
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="analytics" className="space-y-6">
+                  <ReportsExample />
+                </TabsContent>
+
+                <TabsContent value="custom" className="space-y-6">
+                  <CustomReportBuilder />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
