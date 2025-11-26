@@ -63,7 +63,7 @@ export const trainingData: Record<string, any> = {
         ],
         quiz: {
           title: "Leadership & Strategic Visioning Assessment",
-          duration: "15 mins",
+          duration: "10 mins",
         },
       },
       {
