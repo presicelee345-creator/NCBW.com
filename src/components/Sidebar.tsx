@@ -1,11 +1,11 @@
-import { Users, GraduationCap, UserCircle, Shield, Award, Lock, BarChart3, Mail } from "lucide-react";
+import { Users, GraduationCap, UserCircle, Shield, Lock } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
   selectedPosition: string;
   onSelectPosition: (position: string) => void;
-  view: "curriculum" | "profile" | "admin" | "certificate-example" | "reports-example" | "email-example";
-  onViewChange: (view: "curriculum" | "profile" | "admin" | "certificate-example" | "reports-example" | "email-example") => void;
+  view: "curriculum" | "profile" | "admin";
+  onViewChange: (view: "curriculum" | "profile" | "admin") => void;
   isTrackLocked: (positionId: string) => boolean;
   selectedTrack: string | null;
 }
@@ -111,47 +111,6 @@ export function Sidebar({
               >
                 <Shield className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm">Admin Dashboard</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h2 className="px-3 mb-3 text-xs uppercase tracking-wider text-gray-500">
-              Examples
-            </h2>
-            <div className="space-y-1">
-              <button
-                onClick={() => onViewChange("certificate-example")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
-                  view === "certificate-example"
-                    ? "bg-[#c6930a] text-black"
-                    : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
-                }`}
-              >
-                <Award className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">Certificate Example</span>
-              </button>
-              <button
-                onClick={() => onViewChange("reports-example")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
-                  view === "reports-example"
-                    ? "bg-[#c6930a] text-black"
-                    : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
-                }`}
-              >
-                <BarChart3 className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">Reports Example</span>
-              </button>
-              <button
-                onClick={() => onViewChange("email-example")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
-                  view === "email-example"
-                    ? "bg-[#c6930a] text-black"
-                    : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
-                }`}
-              >
-                <Mail className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">Email Example</span>
               </button>
             </div>
           </div>

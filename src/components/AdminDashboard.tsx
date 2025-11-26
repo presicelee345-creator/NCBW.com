@@ -511,41 +511,16 @@ export function AdminDashboard() {
             <CardHeader>
               <CardTitle className="text-[#c6930a]">Email Management</CardTitle>
               <CardDescription>
-                Customize and send email templates to trainees
+                Customize email templates for trainee communication
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Quick Actions */}
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    onClick={handleSendWeeklyReminders}
-                    className="bg-[#c6930a] hover:bg-[#a37808] gap-2 h-auto py-4"
-                  >
-                    <Mail className="h-5 w-5" />
-                    <div className="text-left">
-                      <div>Send Weekly Reminders</div>
-                      <div className="text-xs opacity-90">Send to all active trainees</div>
-                    </div>
-                  </Button>
-                  <Button 
-                    onClick={() => handleSendBulkEmail("at_risk")}
-                    variant="outline"
-                    className="gap-2 h-auto py-4"
-                  >
-                    <Mail className="h-5 w-5" />
-                    <div className="text-left">
-                      <div>Re-engage At-Risk Trainees</div>
-                      <div className="text-xs text-gray-600">Send to inactive trainees</div>
-                    </div>
-                  </Button>
-                </div>
-
                 {/* Email Templates Section */}
-                <div className="border-t pt-6">
+                <div>
                   <h3 className="mb-4">Email Templates</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    View and customize email templates for different scenarios
+                    View, preview, and customize email templates
                   </p>
                   
                   <div className="space-y-3">
@@ -570,7 +545,7 @@ export function AdminDashboard() {
                             onClick={() => handleEditEmailTemplate("welcome")}
                           >
                             <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
+                            Preview & Edit
                           </Button>
                           <Button 
                             size="sm" 
@@ -584,18 +559,18 @@ export function AdminDashboard() {
                       </div>
                     </div>
 
-                    {/* Weekly Reminder */}
+                    {/* Weekly Reminder Email */}
                     <div className="border rounded-lg p-4 hover:bg-gray-50">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4>Weekly Reminder</h4>
-                            <Badge variant="outline" className="text-xs">
+                            <h4>Weekly Reminder Email</h4>
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                               Engagement
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600">
-                            General weekly progress update for all active trainees
+                            Weekly progress update sent to all active trainees
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -605,7 +580,7 @@ export function AdminDashboard() {
                             onClick={() => handleEditEmailTemplate("weekly_reminder")}
                           >
                             <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
+                            Preview & Edit
                           </Button>
                           <Button 
                             size="sm" 
@@ -614,60 +589,6 @@ export function AdminDashboard() {
                           >
                             <Mail className="h-3 w-3 mr-1" />
                             Send
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Individual Reminder */}
-                    <div className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4>Individual Reminder</h4>
-                            <Badge variant="outline" className="text-xs">
-                              Follow-up
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            Personalized reminder for individual trainees
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditEmailTemplate("individual_reminder")}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quiz Passed Notification */}
-                    <div className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4>Quiz Passed Notification</h4>
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              Achievement
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            Congratulatory email sent when trainee passes a quiz
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditEmailTemplate("quiz_passed")}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
                           </Button>
                         </div>
                       </div>
@@ -694,43 +615,75 @@ export function AdminDashboard() {
                             onClick={() => handleEditEmailTemplate("certificate")}
                           >
                             <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
+                            Preview & Edit
                           </Button>
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                    {/* At-Risk Alert */}
-                    <div className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4>At-Risk Alert</h4>
-                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                              Re-engagement
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            Sent to trainees who haven't been active recently
-                          </p>
+                {/* Email Previews Section */}
+                <div className="border-t pt-6">
+                  <h3 className="mb-3">Email Template Previews</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Visual preview of email templates as they appear to recipients
+                  </p>
+                  
+                  <div className="space-y-6">
+                    {/* Welcome Email Preview */}
+                    <div>
+                      <h4 className="text-sm mb-2">Welcome Email</h4>
+                      <div className="border rounded-lg overflow-hidden bg-white">
+                        <div className="bg-black p-4 text-center border-b-4 border-[#c6930a]">
+                          <div className="text-2xl mb-1">👑</div>
+                          <div className="text-[#c6930a] text-sm tracking-wider">NATIONAL COALITION OF 100 BLACK WOMEN</div>
+                          <p className="text-gray-400 text-xs mt-1">Queen City Metropolitan Chapter</p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditEmailTemplate("at_risk")}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit Template
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="bg-[#c6930a] hover:bg-[#a37808]"
-                            onClick={() => handleSendBulkEmail("at_risk")}
-                          >
-                            <Mail className="h-3 w-3 mr-1" />
-                            Send
-                          </Button>
+                        <div className="p-4 bg-gray-50">
+                          <div className="bg-white p-4 rounded text-xs">
+                            <p className="mb-2"><strong>Subject:</strong> Welcome to [Track] - Let's Begin Your Leadership Journey! 🎉</p>
+                            <p className="text-gray-600">Dear [Trainee Name],</p>
+                            <p className="text-gray-600 mt-2">Congratulations on taking the first step toward becoming an exceptional leader...</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Weekly Reminder Email Preview */}
+                    <div>
+                      <h4 className="text-sm mb-2">Weekly Reminder Email</h4>
+                      <div className="border rounded-lg overflow-hidden bg-white">
+                        <div className="bg-black p-4 text-center border-b-4 border-[#c6930a]">
+                          <div className="text-2xl mb-1">👑</div>
+                          <div className="text-[#c6930a] text-sm tracking-wider">NATIONAL COALITION OF 100 BLACK WOMEN</div>
+                          <p className="text-gray-400 text-xs mt-1">Queen City Metropolitan Chapter</p>
+                        </div>
+                        <div className="p-4 bg-gray-50">
+                          <div className="bg-white p-4 rounded text-xs">
+                            <p className="mb-2"><strong>Subject:</strong> Weekly Training Update - Continue Your Leadership Journey 📚</p>
+                            <p className="text-gray-600">Dear Trainee,</p>
+                            <p className="text-gray-600 mt-2">We hope you're enjoying your leadership training journey...</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Certificate Award Email Preview */}
+                    <div>
+                      <h4 className="text-sm mb-2">Certificate Award Email</h4>
+                      <div className="border rounded-lg overflow-hidden bg-white">
+                        <div className="bg-black p-4 text-center border-b-4 border-[#c6930a]">
+                          <div className="text-2xl mb-1">👑</div>
+                          <div className="text-[#c6930a] text-sm tracking-wider">NATIONAL COALITION OF 100 BLACK WOMEN</div>
+                          <p className="text-gray-400 text-xs mt-1">Queen City Metropolitan Chapter</p>
+                        </div>
+                        <div className="p-4 bg-gray-50">
+                          <div className="bg-white p-4 rounded text-xs">
+                            <p className="mb-2"><strong>Subject:</strong> 🏆 Congratulations! You've Earned Your [Track] Certificate!</p>
+                            <p className="text-gray-600">Dear [Trainee Name],</p>
+                            <p className="text-gray-600 mt-2">We are absolutely thrilled to announce that you have successfully completed...</p>
+                          </div>
                         </div>
                       </div>
                     </div>
