@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -201,11 +201,11 @@ P.S. If you need to pause or adjust your training schedule, please let us know. 
   };
 
   // Initialize with template when dialog opens
-  useState(() => {
+  useEffect(() => {
     const template = emailTemplates[emailType];
     setSubject(template.subject);
     setBody(template.body);
-  });
+  }, [emailType]);
 
   const handleEmailTypeChange = (newType: typeof emailType) => {
     setEmailType(newType);

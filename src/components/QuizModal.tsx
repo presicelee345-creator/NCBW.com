@@ -313,11 +313,6 @@ export function QuizModal({ isOpen, onClose, quizTitle, duration, onComplete }: 
                           <p className={isCorrect ? "text-green-700" : "text-red-700"}>
                             <strong>Your answer:</strong> {question.options[userAnswer]}
                           </p>
-                          {!isCorrect && (
-                            <p className="text-green-700">
-                              <strong>Correct answer:</strong> {question.options[question.correctAnswer]}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>

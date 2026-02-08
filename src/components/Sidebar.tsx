@@ -1,4 +1,4 @@
-import { Users, GraduationCap, UserCircle, Shield, Lock } from "lucide-react";
+import { Users, GraduationCap, UserCircle, Shield, Lock, LogOut } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface SidebarProps {
@@ -8,6 +8,8 @@ interface SidebarProps {
   onViewChange: (view: "curriculum" | "profile" | "admin") => void;
   isTrackLocked: (positionId: string) => boolean;
   selectedTrack: string | null;
+  userType?: "admin" | "trainee";
+  onLogout?: () => void;
 }
 
 const positions = [
@@ -29,6 +31,8 @@ export function Sidebar({
   onViewChange,
   isTrackLocked,
   selectedTrack,
+  userType,
+  onLogout,
 }: SidebarProps) {
   return (
     <div className="w-80 bg-black border-r border-[#c6930a]/20 flex flex-col">
@@ -96,24 +100,44 @@ export function Sidebar({
             </div>
           </div>
 
-          <div>
-            <h2 className="px-3 mb-3 text-xs uppercase tracking-wider text-gray-500">
-              Administration
-            </h2>
-            <div className="space-y-1">
-              <button
-                onClick={() => onViewChange("admin")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
-                  view === "admin"
-                    ? "bg-[#c6930a] text-black"
-                    : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
-                }`}
-              >
-                <Shield className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm">Admin Dashboard</span>
-              </button>
+          {/* Only show admin dashboard for admin users */}
+          {userType === "admin" && (
+            <div>
+              <h2 className="px-3 mb-3 text-xs uppercase tracking-wider text-gray-500">
+                Administration
+              </h2>
+              <div className="space-y-1">
+                <button
+                  onClick={() => onViewChange("admin")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
+                    view === "admin"
+                      ? "bg-[#c6930a] text-black"
+                      : "text-gray-300 hover:bg-[#c6930a]/10 hover:text-[#c6930a]"
+                  }`}
+                >
+                  <Shield className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm">Admin Dashboard</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {onLogout && (
+            <div>
+              <h2 className="px-3 mb-3 text-xs uppercase tracking-wider text-gray-500">
+                Account
+              </h2>
+              <div className="space-y-1">
+                <button
+                  onClick={onLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left text-gray-300 hover:bg-red-900/20 hover:text-red-400"
+                >
+                  <LogOut className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm">Logout</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>

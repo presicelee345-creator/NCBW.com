@@ -4,12 +4,14 @@ import { DashboardHeader } from "./components/DashboardHeader";
 import { PositionDetail } from "./components/PositionDetail";
 import { ProfileView } from "./components/ProfileView";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { LoginPage } from "./components/LoginPage";
 import {
   trainingData,
   trackProgress,
 } from "./data/trainingData";
 
 type ViewType = "curriculum" | "profile" | "admin";
+type UserType = "admin" | "trainee" | null;
 
 export default function App() {
   const [selectedPosition, setSelectedPosition] =
@@ -18,6 +20,32 @@ export default function App() {
   const [selectedTrack, setSelectedTrack] = useState<
     string | null
   >(null);
+  const [userType, setUserType] = useState<UserType>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  // Handle login
+  const handleLogin = (type: "admin" | "trainee", email: string) => {
+    setUserType(type);
+    setUserEmail(email);
+    // Set initial view based on user type
+    if (type === "admin") {
+      setView("admin");
+    } else {
+      setView("curriculum");
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setUserType(null);
+    setUserEmail("");
+    setView("curriculum");
+  };
+
+  // If not logged in, show login page
+  if (!userType) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   // Handle track selection - any track can be selected, but others appear locked
   const handleSelectPosition = (positionId: string) => {
@@ -54,6 +82,8 @@ export default function App() {
         onViewChange={setView}
         isTrackLocked={isTrackLocked}
         selectedTrack={selectedTrack}
+        userType={userType}
+        onLogout={handleLogout}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader />
@@ -67,7 +97,7 @@ export default function App() {
             />
           ) : view === "profile" ? (
             <ProfileView />
-          ) : view === "admin" ? (
+          ) : view === "admin" && userType === "admin" ? (
             <AdminDashboard />
           ) : null}
         </main>

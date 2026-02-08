@@ -20,9 +20,7 @@ import { CustomReportBuilder } from "./CustomReportBuilder";
 export function AdminDashboard() {
   const [selectedTrack, setSelectedTrack] = useState("president");
   const [reportFilter, setReportFilter] = useState("all");
-  const [isEditingTrack, setIsEditingTrack] = useState(false);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
-  const [editingAttribute, setEditingAttribute] = useState<number | null>(null);
 
   // Email template state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
@@ -30,11 +28,6 @@ export function AdminDashboard() {
   const [currentRecipient, setCurrentRecipient] = useState<{ name: string; email: string; track: string } | null>(null);
   const [isEditingEmailTemplate, setIsEditingEmailTemplate] = useState(false);
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<"welcome" | "weekly_reminder" | "individual_reminder" | "quiz_passed" | "certificate" | "at_risk">("welcome");
-
-  // Track editing state
-  const [trackName, setTrackName] = useState("");
-  const [trackDescription, setTrackDescription] = useState("");
-  const [attributes, setAttributes] = useState<any[]>([]);
 
   // Quiz creation state
   const [quizTitle, setQuizTitle] = useState("");
@@ -104,48 +97,6 @@ export function AdminDashboard() {
     a.download = `training-report-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     toast.success("Report downloaded successfully!");
-  };
-
-  const handleOpenTrackEditor = () => {
-    const track = trainingData[selectedTrack];
-    setTrackName(track.name);
-    setTrackDescription(track.description);
-    setAttributes(JSON.parse(JSON.stringify(track.attributes)));
-    setIsEditingTrack(true);
-  };
-
-  const handleSaveTrack = () => {
-    toast.success(`Track "${trackName}" updated successfully!`);
-    setIsEditingTrack(false);
-  };
-
-  const handleAddAttribute = () => {
-    setAttributes([...attributes, {
-      title: "New Module",
-      description: "Module description",
-      courses: [],
-      quiz: { title: "New Quiz", duration: "15 mins" }
-    }]);
-  };
-
-  const handleDeleteAttribute = (index: number) => {
-    setAttributes(attributes.filter((_, i) => i !== index));
-  };
-
-  const handleAddCourse = (attrIndex: number) => {
-    const newAttributes = [...attributes];
-    newAttributes[attrIndex].courses.push({
-      title: "New Course",
-      platform: "LinkedIn Learning",
-      duration: "30 mins"
-    });
-    setAttributes(newAttributes);
-  };
-
-  const handleDeleteCourse = (attrIndex: number, courseIndex: number) => {
-    const newAttributes = [...attributes];
-    newAttributes[attrIndex].courses = newAttributes[attrIndex].courses.filter((_: any, i: number) => i !== courseIndex);
-    setAttributes(newAttributes);
   };
 
   const handleCreateQuiz = () => {
@@ -223,9 +174,8 @@ export function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="trainees" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="trainees">Trainees</TabsTrigger>
-          <TabsTrigger value="tracks">Manage Tracks</TabsTrigger>
           <TabsTrigger value="quizzes">Manage Quizzes</TabsTrigger>
           <TabsTrigger value="certificates">Certificates</TabsTrigger>
           <TabsTrigger value="emails">Emails</TabsTrigger>
@@ -297,61 +247,6 @@ export function AdminDashboard() {
                   ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tracks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Leadership Track Management</CardTitle>
-                  <CardDescription>Edit track content, add modules, and manage courses</CardDescription>
-                </div>
-                <Button onClick={handleOpenTrackEditor} className="bg-[#c6930a] hover:bg-[#a37808] gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit Selected Track
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Select Track to Edit</Label>
-                <Select value={selectedTrack} onValueChange={setSelectedTrack}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {trackOrder.map((trackId) => (
-                      <SelectItem key={trackId} value={trackId}>
-                        {trainingData[trackId].name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="border rounded-lg p-4 space-y-3">
-                <h3>{trainingData[selectedTrack].name}</h3>
-                <p className="text-sm text-gray-600">{trainingData[selectedTrack].description}</p>
-                <div className="grid grid-cols-3 gap-4 pt-2">
-                  <div className="text-sm">
-                    <span className="text-gray-600">Modules:</span>
-                    <p className="text-lg text-[#c6930a]">{trainingData[selectedTrack].attributes.length}</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-gray-600">Total Courses:</span>
-                    <p className="text-lg text-[#c6930a]">
-                      {trainingData[selectedTrack].attributes.reduce((sum: number, attr: any) => sum + attr.courses.length, 0)}
-                    </p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-gray-600">Quizzes:</span>
-                    <p className="text-lg text-[#c6930a]">{trainingData[selectedTrack].attributes.length}</p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -725,151 +620,6 @@ export function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Track Editor Dialog */}
-      <Dialog open={isEditingTrack} onOpenChange={setIsEditingTrack}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#c6930a]">Edit Leadership Track</DialogTitle>
-            <DialogDescription>
-              Modify track details, add/remove modules, and manage courses
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label>Track Name</Label>
-              <Input value={trackName} onChange={(e) => setTrackName(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Track Description</Label>
-              <Textarea 
-                value={trackDescription} 
-                onChange={(e) => setTrackDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Training Modules</Label>
-                <Button size="sm" onClick={handleAddAttribute} className="bg-[#c6930a] hover:bg-[#a37808]">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Module
-                </Button>
-              </div>
-
-              {attributes.map((attr, attrIndex) => (
-                <div key={attrIndex} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 space-y-2">
-                      <Input 
-                        value={attr.title}
-                        onChange={(e) => {
-                          const newAttrs = [...attributes];
-                          newAttrs[attrIndex].title = e.target.value;
-                          setAttributes(newAttrs);
-                        }}
-                        placeholder="Module title"
-                      />
-                      <Textarea 
-                        value={attr.description}
-                        onChange={(e) => {
-                          const newAttrs = [...attributes];
-                          newAttrs[attrIndex].description = e.target.value;
-                          setAttributes(newAttrs);
-                        }}
-                        placeholder="Module description"
-                        rows={2}
-                      />
-                    </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => handleDeleteAttribute(attrIndex)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm">Courses</Label>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleAddCourse(attrIndex)}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Course
-                      </Button>
-                    </div>
-
-                    {attr.courses.map((course: any, courseIndex: number) => (
-                      <div key={courseIndex} className="flex gap-2 items-start bg-gray-50 p-2 rounded">
-                        <div className="flex-1 space-y-2">
-                          <Input 
-                            value={course.title}
-                            onChange={(e) => {
-                              const newAttrs = [...attributes];
-                              newAttrs[attrIndex].courses[courseIndex].title = e.target.value;
-                              setAttributes(newAttrs);
-                            }}
-                            placeholder="Course title"
-                            className="text-sm"
-                          />
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input 
-                              value={course.platform}
-                              onChange={(e) => {
-                                const newAttrs = [...attributes];
-                                newAttrs[attrIndex].courses[courseIndex].platform = e.target.value;
-                                setAttributes(newAttrs);
-                              }}
-                              placeholder="Platform"
-                              className="text-sm"
-                            />
-                            <Input 
-                              value={course.duration}
-                              onChange={(e) => {
-                                const newAttrs = [...attributes];
-                                newAttrs[attrIndex].courses[courseIndex].duration = e.target.value;
-                                setAttributes(newAttrs);
-                              }}
-                              placeholder="Duration"
-                              className="text-sm"
-                            />
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDeleteCourse(attrIndex, courseIndex)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditingTrack(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveTrack} className="bg-[#c6930a] hover:bg-[#a37808]">
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Certificate Editor Dialog */}
       <Dialog open={isEditingCertificate} onOpenChange={setIsEditingCertificate}>
