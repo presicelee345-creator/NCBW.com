@@ -4,23 +4,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Badge } from "./ui/badge";
-import { Download, Mail, Loader2 } from "lucide-react";
+import { Download, Mail, Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
 import { toast } from "sonner@2.0.3";
 import { adminApi } from "../utils/api";
 import { ReportsExample } from "./ReportsExample";
 import { CertificateGenerator } from "./CertificateGenerator";
 import { EmailTemplateManager } from "./EmailTemplateManager";
 import { CustomReportBuilder } from "./CustomReportBuilder";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { trainingData } from "../data/trainingData";
 
 interface AdminDashboardProps {
   accessToken: string;
 }
+
+// Track order for certificates
+const trackOrder = ["president", "vice-president", "secretary", "treasurer", "membership-chair", "communication-director", "event-coordinator", "fundraising-chair", "advocacy-lead"];
 
 export function AdminDashboard({ accessToken }: AdminDashboardProps) {
   const [users, setUsers] = useState<any[]>([]);
   const [progressRecords, setProgressRecords] = useState<any[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
+  
+  // Certificate management state
+  const [certificates, setCertificates] = useState<any[]>([
+    { id: 1, name: "Leadership Excellence", track: "President", template: "Classic Gold", createdDate: "2024-01-15" },
+    { id: 2, name: "Vice President Achievement", track: "Vice President", template: "Modern Black", createdDate: "2024-01-20" },
+  ]);
+  const [isEditingCertificate, setIsEditingCertificate] = useState(false);
+  const [certificateTitle, setCertificateTitle] = useState("");
+  const [certificateMessage, setCertificateMessage] = useState("For successfully completing the comprehensive leadership training program");
+  const [certificateFooter, setCertificateFooter] = useState("Demonstrating dedication, knowledge, and commitment to excellence");
+  
+  // Email management state
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [currentEmailType, setCurrentEmailType] = useState<string>("");
+  const [currentRecipient, setCurrentRecipient] = useState<any>(null);
 
   useEffect(() => {
     loadUsers();
@@ -84,6 +108,56 @@ export function AdminDashboard({ accessToken }: AdminDashboardProps) {
 
   const getUserProgress = (userId: string) => {
     return progressRecords.filter(p => p.userId === userId);
+  };
+  
+  // Certificate handlers
+  const handleCreateCertificate = () => {
+    setCertificateTitle("");
+    setCertificateMessage("For successfully completing the comprehensive leadership training program");
+    setCertificateFooter("Demonstrating dedication, knowledge, and commitment to excellence");
+    setIsEditingCertificate(true);
+    toast.success("Opening certificate editor...");
+  };
+  
+  const handleEditCertificate = (certId: number) => {
+    const cert = certificates.find(c => c.id === certId);
+    if (cert) {
+      setCertificateTitle(cert.name);
+      setIsEditingCertificate(true);
+      toast.success("Opening certificate editor...");
+    }
+  };
+  
+  const handleDeleteCertificate = (certId: number) => {
+    setCertificates(certificates.filter(c => c.id !== certId));
+    toast.success("Certificate deleted successfully!");
+  };
+  
+  const handleSaveCertificate = () => {
+    const newCert = {
+      id: certificates.length + 1,
+      name: certificateTitle || "New Certificate",
+      track: "All Tracks",
+      template: "Classic Gold",
+      createdDate: new Date().toISOString().split('T')[0],
+    };
+    setCertificates([...certificates, newCert]);
+    setIsEditingCertificate(false);
+    toast.success("Certificate saved successfully!");
+  };
+  
+  // Email handlers
+  const handleEditEmailTemplate = (emailType: string) => {
+    setCurrentEmailType(emailType);
+    setIsEmailDialogOpen(true);
+    toast.success("Opening email template editor...");
+  };
+  
+  const handleSendBulkEmail = (emailType: string) => {
+    toast.success(`Sending ${emailType} emails to all trainees...`);
+    setTimeout(() => {
+      toast.success(`${emailType} emails sent successfully!`);
+    }, 1500);
   };
 
   return (

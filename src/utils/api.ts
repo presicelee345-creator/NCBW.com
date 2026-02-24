@@ -1,6 +1,11 @@
-import { projectId } from './supabase/info';
-
-const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-7e07f5f2`;
+import {
+  localAuthApi,
+  localTrackApi,
+  localProgressApi,
+  localQuizApi,
+  localAdminApi,
+  localNotificationApi,
+} from './localStorage';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -8,136 +13,77 @@ interface ApiResponse<T = any> {
   [key: string]: any;
 }
 
-// Helper function to make API calls
-async function apiCall<T = any>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+// Helper function to simulate async API calls
+async function simulateAsync<T>(fn: () => T): Promise<T> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        resolve(fn());
+      } catch (error) {
+        reject(error);
+      }
+    }, 100); // Small delay to simulate network request
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
-  }
-
-  return data;
 }
 
 // Auth API
 export const authApi = {
   async signup(email: string, password: string, firstName: string, lastName: string, role: 'admin' | 'trainee' = 'trainee') {
-    return apiCall<ApiResponse>('/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, firstName, lastName, role }),
-    });
+    return simulateAsync(() => localAuthApi.signup(email, password, firstName, lastName, role));
   },
 
   async signin(email: string, password: string) {
-    return apiCall<ApiResponse<{ accessToken: string; user: any }>>('/auth/signin', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    return simulateAsync(() => localAuthApi.signin(email, password));
   },
 
   async getUser(accessToken: string) {
-    return apiCall<ApiResponse<{ user: any }>>('/auth/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    return simulateAsync(() => localAuthApi.getUser(accessToken));
   },
 };
 
 // Track API
 export const trackApi = {
   async selectTrack(accessToken: string, trackId: string) {
-    return apiCall<ApiResponse>('/tracks/select', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ trackId }),
-    });
+    return simulateAsync(() => localTrackApi.selectTrack(accessToken, trackId));
   },
 
   async getSelectedTrack(accessToken: string) {
-    return apiCall<ApiResponse<{ selectedTrack: string | null }>>('/tracks/selected', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    return simulateAsync(() => localTrackApi.getSelectedTrack(accessToken));
   },
 };
 
 // Progress API
 export const progressApi = {
   async getProgress(accessToken: string, trackId: string) {
-    return apiCall<ApiResponse<{ progress: any }>>(`/progress/${trackId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    return simulateAsync(() => localProgressApi.getProgress(accessToken, trackId));
   },
 
   async markCourseComplete(accessToken: string, trackId: string, moduleIndex: number, courseIndex: number) {
-    return apiCall<ApiResponse>('/progress/course-complete', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ trackId, moduleIndex, courseIndex }),
-    });
+    return simulateAsync(() => localProgressApi.markCourseComplete(accessToken, trackId, moduleIndex, courseIndex));
   },
 };
 
 // Quiz API
 export const quizApi = {
   async submitQuiz(accessToken: string, trackId: string, moduleIndex: number, score: number) {
-    return apiCall<ApiResponse<{ passed: boolean; progress: any }>>('/quiz/submit', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ trackId, moduleIndex, score }),
-    });
+    return simulateAsync(() => localQuizApi.submitQuiz(accessToken, trackId, moduleIndex, score));
   },
 };
 
 // Admin API
 export const adminApi = {
   async getUsers(accessToken: string) {
-    return apiCall<ApiResponse<{ users: any[] }>>('/admin/users', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    return simulateAsync(() => localAdminApi.getUsers(accessToken));
   },
 
   async getReports(accessToken: string) {
-    return apiCall<ApiResponse<{ progressRecords: any[] }>>('/admin/reports', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    return simulateAsync(() => localAdminApi.getReports(accessToken));
   },
 };
 
 // Notification API
 export const notificationApi = {
   async sendEmail(accessToken: string, to: string, subject: string, body: string) {
-    return apiCall<ApiResponse>('/notifications/email', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ to, subject, body }),
-    });
+    return simulateAsync(() => localNotificationApi.sendEmail(accessToken, to, subject, body));
   },
 };
