@@ -34,6 +34,11 @@ export function Sidebar({
   userType,
   onLogout,
 }: SidebarProps) {
+  // Filter positions based on user type
+  const displayedPositions = userType === "trainee" && selectedTrack
+    ? positions.filter(p => p.id === selectedTrack)
+    : positions;
+
   return (
     <div className="w-80 bg-black border-r border-[#c6930a]/20 flex flex-col">
       <div className="p-6 border-b border-[#c6930a]/20">
@@ -70,7 +75,7 @@ export function Sidebar({
               Leadership Tracks
             </h2>
             <div className="space-y-1">
-              {positions.map((position) => {
+              {displayedPositions.map((position) => {
                 const isSelected =
                   selectedPosition === position.id && view === "curriculum";
                 const showLocked = isTrackLocked(position.id);

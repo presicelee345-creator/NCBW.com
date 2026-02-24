@@ -1,201 +1,334 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Checkbox } from './ui/checkbox';
+import { UserCircle, Lock, Mail, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner@2.0.3';
+import { authApi } from '../utils/api';
 
 interface LoginPageProps {
-  onLogin: (userType: "admin" | "trainee", email: string) => void;
+  onLogin: (type: "admin" | "trainee", email: string, accessToken: string, user: any) => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
-  // Password validation
-  const hasMinLength = password.length >= 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
+  const [signupFirstName, setSignupFirstName] = useState('');
+  const [signupLastName, setSignupLastName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
 
-  const isPasswordValid = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setIsLoginLoading(true);
+    setLoginError('');
 
-    if (isCreatingAccount) {
-      // Validate password requirements
-      if (!isPasswordValid) {
-        setError("Please meet all password requirements");
-        return;
+    try {
+      const response = await authApi.signin(loginEmail, loginPassword);
+      
+      if (response.success) {
+        toast.success('Login successful!');
+        onLogin(
+          response.user.role,
+          response.user.email,
+          response.accessToken,
+          response.user
+        );
       }
-      if (!passwordsMatch) {
-        setError("Passwords do not match");
-        return;
-      }
-      // In a real app, this would create the account
-      setError("Account creation successful! Please log in.");
-      setIsCreatingAccount(false);
-      setPassword("");
-      setConfirmPassword("");
-      return;
-    }
-
-    // Login logic - determine user type based on credentials
-    if (email === "admin@ncbwqueencity.org" && password === "admin123") {
-      onLogin("admin", email);
-    } else if (email === "trainee@ncbwqueencity.org" && password === "trainee123") {
-      onLogin("trainee", email);
-    } else {
-      setError("Invalid email or password");
+    } catch (error: any) {
+      setLoginError(error.message || 'Invalid email or password. Please try again.');
+      toast.error('Login failed. Invalid credentials.');
+    } finally {
+      setIsLoginLoading(false);
     }
   };
 
-  const ValidationItem = ({ isValid, text }: { isValid: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-xs ${isValid ? "text-green-600" : "text-gray-500"}`}>
-      {isValid ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-      <span>{text}</span>
-    </div>
-  );
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSignupLoading(true);
+
+    // Validate passwords match
+    if (signupPassword !== signupConfirmPassword) {
+      setIsSignupLoading(false);
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    // Validate all fields filled
+    if (!signupFirstName || !signupLastName || !signupEmail || !signupPassword) {
+      setIsSignupLoading(false);
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const response = await authApi.signup(
+        signupEmail,
+        signupPassword,
+        signupFirstName,
+        signupLastName,
+        'trainee'
+      );
+
+      if (response.success) {
+        toast.success(`Account created for ${signupFirstName} ${signupLastName}!`);
+        
+        // Automatically sign in the user
+        try {
+          const signinResponse = await authApi.signin(signupEmail, signupPassword);
+          
+          if (signinResponse.success) {
+            toast.success('Logging you in...');
+            onLogin(
+              signinResponse.user.role,
+              signinResponse.user.email,
+              signinResponse.accessToken,
+              signinResponse.user
+            );
+          }
+        } catch (signinError: any) {
+          // If auto-login fails, just show success message and let user login manually
+          toast.error('Account created! Please log in manually.');
+          // Reset form
+          setSignupFirstName('');
+          setSignupLastName('');
+          setSignupEmail('');
+          setSignupPassword('');
+          setSignupConfirmPassword('');
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create account');
+    } finally {
+      setIsSignupLoading(false);
+    }
+  };
+
+  const handlePasswordReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResetLoading(true);
+
+    // Simulate password reset
+    setTimeout(() => {
+      setIsResetLoading(false);
+      if (resetEmail) {
+        toast.success('Password reset link sent to your email!');
+        setResetEmail('');
+        setIsDialogOpen(false);
+      } else {
+        toast.error('Please enter your email');
+      }
+    }, 1000);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black p-4">
-      <Card className="w-full max-w-md border-2 border-[#c6930a]">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-20 h-20 bg-[#c6930a] rounded-full flex items-center justify-center mb-2">
-            <span className="text-3xl">👑</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#c6930a] to-[#a07808] p-4">
+      <Card className="w-full max-w-md bg-white border-[#c6930a]">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-[#c6930a] rounded-full flex items-center justify-center">
+              <UserCircle className="w-10 h-10 text-white" />
+            </div>
           </div>
-          <CardTitle className="text-2xl">NCBW Queen City</CardTitle>
-          <CardDescription>Leadership Training Dashboard</CardDescription>
+          <CardTitle className="text-center text-black">NC100BW Training Dashboard</CardTitle>
+          <CardDescription className="text-center text-black">
+            Login or create a new account
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+              <TabsTrigger value="login" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+                Login
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+                Create Account
+              </TabsTrigger>
+            </TabsList>
 
-            {isCreatingAccount && (
-              <>
+            <TabsContent value="login" className="mt-4">
+              <form onSubmit={handleLogin} className="space-y-4">
+                {loginError && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-800">{loginError}</p>
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
+                  <Label htmlFor="login-email" className="text-black">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password" className="text-black">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="remember-me" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   />
+                  <label
+                    htmlFor="remember-me"
+                    className="text-sm text-black cursor-pointer select-none"
+                  >
+                    Remember Me
+                  </label>
                 </div>
+                <Button type="submit" className="w-full bg-[#c6930a] hover:bg-[#a07808] text-white" disabled={isLoginLoading}>
+                  {isLoginLoading ? 'Logging in...' : 'Login'}
+                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button type="button" className="text-sm text-black hover:underline text-left">
+                      Forgot Password?
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-white border-[#c6930a]">
+                    <DialogHeader>
+                      <DialogTitle className="text-black">Reset Password</DialogTitle>
+                      <DialogDescription>
+                        Enter your email address and we'll send you a link to reset your password.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordReset} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email" className="text-black">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                          <Input
+                            id="reset-email"
+                            type="email"
+                            placeholder="Enter your email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full bg-[#c6930a] hover:bg-[#a07808] text-white" disabled={isResetLoading}>
+                        {isResetLoading ? 'Sending...' : 'Send Reset Link'}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </form>
+            </TabsContent>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2">
-                  <p className="text-xs font-semibold text-gray-700">Password Requirements:</p>
-                  <ValidationItem isValid={hasMinLength} text="At least 8 characters" />
-                  <ValidationItem isValid={hasUpperCase} text="One uppercase letter (A-Z)" />
-                  <ValidationItem isValid={hasLowerCase} text="One lowercase letter (a-z)" />
-                  <ValidationItem isValid={hasNumber} text="One number (0-9)" />
-                  <ValidationItem isValid={hasSpecialChar} text="One special character (!@#$%^&*)" />
-                  {confirmPassword && (
-                    <ValidationItem isValid={passwordsMatch} text="Passwords match" />
-                  )}
+            <TabsContent value="signup" className="mt-4">
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-firstname" className="text-black">First Name</Label>
+                    <Input
+                      id="signup-firstname"
+                      type="text"
+                      placeholder="First name"
+                      value={signupFirstName}
+                      onChange={(e) => setSignupFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-lastname" className="text-black">Last Name</Label>
+                    <Input
+                      id="signup-lastname"
+                      type="text"
+                      placeholder="Last name"
+                      value={signupLastName}
+                      onChange={(e) => setSignupLastName(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </>
-            )}
-
-            {!isCreatingAccount && (
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  Remember me
-                </label>
-              </div>
-            )}
-
-            {error && (
-              <p className={`text-sm ${error.includes("successful") ? "text-green-600" : "text-red-500"}`}>
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full bg-[#c6930a] hover:bg-[#a37808]">
-              {isCreatingAccount ? "Create Account" : "Sign In"}
-            </Button>
-
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCreatingAccount(!isCreatingAccount);
-                  setError("");
-                  setPassword("");
-                  setConfirmPassword("");
-                }}
-                className="text-sm text-[#c6930a] hover:text-[#a37808] font-medium"
-              >
-                {isCreatingAccount ? "Already have an account? Sign in" : "Create new account"}
-              </button>
-            </div>
-
-            {!isCreatingAccount && (
-              <div className="text-xs text-gray-500 mt-4 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p className="font-semibold text-gray-700">Demo Credentials:</p>
-                <div>
-                  <p className="font-medium text-gray-800">Admin:</p>
-                  <p>admin@ncbwqueencity.org / admin123</p>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email" className="text-black">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-800">Trainee:</p>
-                  <p>trainee@ncbwqueencity.org / trainee123</p>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password" className="text-black">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="Create a password"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          </form>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-confirm-password" className="text-black">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
+                    <Input
+                      id="signup-confirm-password"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full bg-[#c6930a] hover:bg-[#a07808] text-white" disabled={isSignupLoading}>
+                  {isSignupLoading ? 'Creating Account...' : 'Create Account'}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

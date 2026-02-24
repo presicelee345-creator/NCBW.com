@@ -1,93 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Badge } from "./ui/badge";
-import { Download, Edit, Plus, Mail, FileText, Trash2, Save, GripVertical } from "lucide-react";
+import { Download, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
-import { trainingData, trackOrder } from "../data/trainingData";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
+import { adminApi } from "../utils/api";
 import { ReportsExample } from "./ReportsExample";
 import { CertificateGenerator } from "./CertificateGenerator";
 import { EmailTemplateManager } from "./EmailTemplateManager";
 import { CustomReportBuilder } from "./CustomReportBuilder";
 
-export function AdminDashboard() {
-  const [selectedTrack, setSelectedTrack] = useState("president");
-  const [reportFilter, setReportFilter] = useState("all");
-  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
+interface AdminDashboardProps {
+  accessToken: string;
+}
 
-  // Email template state
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [currentEmailType, setCurrentEmailType] = useState<"welcome" | "weekly_reminder" | "individual_reminder" | "quiz_passed" | "certificate" | "at_risk">("individual_reminder");
-  const [currentRecipient, setCurrentRecipient] = useState<{ name: string; email: string; track: string } | null>(null);
-  const [isEditingEmailTemplate, setIsEditingEmailTemplate] = useState(false);
-  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<"welcome" | "weekly_reminder" | "individual_reminder" | "quiz_passed" | "certificate" | "at_risk">("welcome");
+export function AdminDashboard({ accessToken }: AdminDashboardProps) {
+  const [users, setUsers] = useState<any[]>([]);
+  const [progressRecords, setProgressRecords] = useState<any[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
-  // Quiz creation state
-  const [quizTitle, setQuizTitle] = useState("");
-  const [quizTrack, setQuizTrack] = useState("");
-  const [quizDuration, setQuizDuration] = useState("");
-  const [quizQuestions, setQuizQuestions] = useState<any[]>([
-    { question: "", options: ["", "", "", ""], correctAnswer: 0 }
-  ]);
+  useEffect(() => {
+    loadUsers();
+    loadProgress();
+  }, []);
 
-  // Certificate management state
-  const [isManagingCertificates, setIsManagingCertificates] = useState(false);
-  const [isEditingCertificate, setIsEditingCertificate] = useState(false);
-  const [certificateTitle, setCertificateTitle] = useState("Certificate of Completion");
-  const [certificateMessage, setCertificateMessage] = useState("For successfully completing the comprehensive leadership training program");
-  const [certificateFooter, setCertificateFooter] = useState("Demonstrating dedication, knowledge, and commitment to excellence in leadership development");
-  const [certificates, setCertificates] = useState([
-    { id: 1, name: "Standard Leadership Certificate", track: "All Tracks", template: "default", createdDate: "Oct 15, 2025" },
-    { id: 2, name: "President Track Certificate", track: "President", template: "gold", createdDate: "Oct 20, 2025" },
-    { id: 3, name: "Treasurer Certification", track: "Treasurer", template: "default", createdDate: "Nov 1, 2025" },
-  ]);
-
-  // Mock trainee data
-  const trainees = [
-    { id: 1, name: "Sarah Johnson", email: "sarah.j@example.com", track: "President", progress: 65, lastActive: "2 hours ago", quizScores: [85, 90, 78] },
-    { id: 2, name: "Maria Garcia", email: "maria.g@example.com", track: "Vice President", progress: 42, lastActive: "1 day ago", quizScores: [75, 82] },
-    { id: 3, name: "Keisha Williams", email: "keisha.w@example.com", track: "Treasurer", progress: 78, lastActive: "3 hours ago", quizScores: [92, 88, 85, 90] },
-    { id: 4, name: "Tamika Brown", email: "tamika.b@example.com", track: "President", progress: 30, lastActive: "2 days ago", quizScores: [70] },
-    { id: 5, name: "Angela Davis", email: "angela.d@example.com", track: "Chaplain", progress: 55, lastActive: "5 hours ago", quizScores: [88, 92, 85] },
-  ];
-
-  const handleSendReminder = (traineeId: number) => {
-    const trainee = trainees.find(t => t.id === traineeId);
-    if (trainee) {
-      setCurrentRecipient({ name: trainee.name, email: trainee.email, track: trainee.track });
-      setCurrentEmailType("individual_reminder");
-      setIsEmailDialogOpen(true);
+  const loadUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await adminApi.getUsers(accessToken);
+      if (response.success) {
+        setUsers(response.users);
+      }
+    } catch (error: any) {
+      console.error("Failed to load users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setIsLoadingUsers(false);
     }
   };
 
-  const handleSendWeeklyReminders = () => {
-    setCurrentRecipient(null);
-    setCurrentEmailType("weekly_reminder");
-    setIsEmailDialogOpen(true);
+  const loadProgress = async () => {
+    setIsLoadingProgress(true);
+    try {
+      const response = await adminApi.getReports(accessToken);
+      if (response.success) {
+        setProgressRecords(response.progressRecords);
+      }
+    } catch (error: any) {
+      console.error("Failed to load progress:", error);
+      toast.error("Failed to load progress");
+    } finally {
+      setIsLoadingProgress(false);
+    }
   };
 
   const handleGenerateReport = () => {
-    const filteredTrainees = reportFilter === "all" 
-      ? trainees 
-      : trainees.filter(t => t.progress < 100);
-
     const csvContent = [
-      ["Name", "Email", "Track", "Progress (%)", "Last Active", "Avg Quiz Score"],
-      ...filteredTrainees.map(t => [
-        t.name,
-        t.email,
-        t.track,
-        t.progress.toString(),
-        t.lastActive,
-        t.quizScores.length > 0 ? Math.round(t.quizScores.reduce((a, b) => a + b, 0) / t.quizScores.length).toString() : "N/A"
-      ])
+      ["User ID", "Email", "Track", "Progress (%)", "Completed Modules", "Started At"],
+      ...progressRecords.map(p => {
+        const user = users.find(u => u.id === p.userId);
+        return [
+          p.userId,
+          user?.email || "N/A",
+          p.trackId,
+          p.overallProgress?.toString() || "0",
+          p.completedModules?.length?.toString() || "0",
+          new Date(p.startedAt).toLocaleDateString()
+        ];
+      })
     ].map(row => row.join(",")).join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -99,194 +82,145 @@ export function AdminDashboard() {
     toast.success("Report downloaded successfully!");
   };
 
-  const handleCreateQuiz = () => {
-    setQuizTitle("");
-    setQuizTrack("");
-    setQuizDuration("");
-    setQuizQuestions([
-      { question: "", options: ["", "", "", ""], correctAnswer: 0 }
-    ]);
-    setIsCreatingQuiz(true);
-  };
-
-  const handleSaveQuiz = () => {
-    toast.success(`Quiz "${quizTitle}" created successfully!`);
-    setIsCreatingQuiz(false);
-  };
-
-  const handleAddQuestion = () => {
-    setQuizQuestions([...quizQuestions, {
-      question: "",
-      options: ["", "", "", ""],
-      correctAnswer: 0
-    }]);
-  };
-
-  const handleDeleteQuestion = (index: number) => {
-    setQuizQuestions(quizQuestions.filter((_, i) => i !== index));
-  };
-
-  const handleCreateCertificate = () => {
-    setCertificateTitle("Certificate of Completion");
-    setCertificateMessage("For successfully completing the comprehensive leadership training program");
-    setCertificateFooter("Demonstrating dedication, knowledge, and commitment to excellence in leadership development");
-    setIsEditingCertificate(true);
-  };
-
-  const handleEditCertificate = (certId: number) => {
-    const cert = certificates.find(c => c.id === certId);
-    if (cert) {
-      setCertificateTitle(cert.name);
-      setIsEditingCertificate(true);
-    }
-  };
-
-  const handleSaveCertificate = () => {
-    toast.success(`Certificate "${certificateTitle}" saved successfully!`);
-    setIsEditingCertificate(false);
-  };
-
-  const handleDeleteCertificate = (certId: number) => {
-    setCertificates(certificates.filter(c => c.id !== certId));
-    toast.success("Certificate deleted successfully!");
-  };
-
-  const handleEditEmailTemplate = (templateType: typeof selectedEmailTemplate) => {
-    setSelectedEmailTemplate(templateType);
-    setCurrentRecipient(null);
-    setCurrentEmailType(templateType);
-    setIsEmailDialogOpen(true);
-  };
-
-  const handleSendBulkEmail = (emailType: typeof currentEmailType) => {
-    setCurrentRecipient(null);
-    setCurrentEmailType(emailType);
-    setIsEmailDialogOpen(true);
+  const getUserProgress = (userId: string) => {
+    return progressRecords.filter(p => p.userId === userId);
   };
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl">Administrator Dashboard</h1>
-          <p className="text-gray-600 mt-1">Manage tracks, quizzes, trainees, and generate reports</p>
+          <h1 className="text-3xl text-[#c6930a]">Administrator Dashboard</h1>
+          <p className="text-gray-600 mt-1">Manage users, view progress, and generate reports</p>
         </div>
       </div>
 
       <Tabs defaultValue="trainees" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="trainees">Trainees</TabsTrigger>
-          <TabsTrigger value="quizzes">Manage Quizzes</TabsTrigger>
-          <TabsTrigger value="certificates">Certificates</TabsTrigger>
-          <TabsTrigger value="emails">Emails</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-gray-100">
+          <TabsTrigger value="trainees" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+            Trainees
+          </TabsTrigger>
+          <TabsTrigger value="progress" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+            Progress
+          </TabsTrigger>
+          <TabsTrigger value="certificates" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+            Certificates
+          </TabsTrigger>
+          <TabsTrigger value="emails" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+            Emails
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="data-[state=active]:bg-[#c6930a] data-[state=active]:text-white">
+            Reports
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="trainees" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Trainee Progress Overview</CardTitle>
-              <CardDescription>Monitor and manage all trainee progression and quiz scores</CardDescription>
+              <CardTitle className="text-[#c6930a]">User Management</CardTitle>
+              <CardDescription>View and manage all registered users</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Track</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Avg Quiz Score</TableHead>
-                    <TableHead>Last Active</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {trainees.map((trainee) => (
-                    <TableRow key={trainee.id}>
-                      <TableCell>{trainee.name}</TableCell>
-                      <TableCell className="text-gray-600">{trainee.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{trainee.track}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-[#c6930a]"
-                              style={{ width: `${trainee.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-sm">{trainee.progress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {trainee.quizScores.length > 0 ? (
-                          <Badge className="bg-green-100 text-green-700">
-                            {Math.round(trainee.quizScores.reduce((a, b) => a + b, 0) / trainee.quizScores.length)}%
-                          </Badge>
-                        ) : (
-                          <span className="text-gray-400">No quizzes</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-gray-600">{trainee.lastActive}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSendReminder(trainee.id)}
-                            className="gap-1"
-                          >
-                            <Mail className="h-3 w-3" />
-                            Remind
-                          </Button>
-                        </div>
-                      </TableCell>
+              {isLoadingUsers ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#c6930a]" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Selected Track</TableHead>
+                      <TableHead>Joined</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.firstName} {user.lastName}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge className={user.role === 'admin' ? "bg-[#c6930a] text-white" : "bg-gray-200 text-gray-700"}>
+                            {user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {user.selectedTrack?.replace(/-/g, ' ') || 'Not selected'}
+                        </TableCell>
+                        <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="quizzes" className="space-y-4">
+        <TabsContent value="progress" className="space-y-4">
           <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Quiz Management</CardTitle>
-                  <CardDescription>Create, edit, and manage training quizzes</CardDescription>
-                </div>
-                <Button onClick={handleCreateQuiz} className="bg-[#c6930a] hover:bg-[#a37808] gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create New Quiz
-                </Button>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-[#c6930a]">Trainee Progress</CardTitle>
+                <CardDescription>Monitor all trainee progression</CardDescription>
               </div>
+              <Button onClick={handleGenerateReport} className="bg-[#c6930a] hover:bg-[#a07808] text-white">
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {trackOrder.map((trackId) => {
-                  const track = trainingData[trackId];
-                  return (
-                    <div key={trackId} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4>{track.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {track.attributes.length} quizzes
-                          </p>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit Quizzes
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              {isLoadingProgress ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#c6930a]" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Track</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Completed Modules</TableHead>
+                      <TableHead>Started</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {progressRecords.map((record, idx) => {
+                      const user = users.find(u => u.id === record.userId);
+                      return (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            {user ? `${user.firstName} ${user.lastName}` : record.userId}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {record.trackId?.replace(/-/g, ' ')}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-gray-200 h-2 rounded-full max-w-[100px]">
+                                <div 
+                                  className="bg-[#c6930a] h-2 rounded-full" 
+                                  style={{ width: `${record.overallProgress || 0}%` }}
+                                />
+                              </div>
+                              <span className="text-sm">{record.overallProgress || 0}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {record.completedModules?.length || 0} of 5
+                          </TableCell>
+                          <TableCell>
+                            {new Date(record.startedAt).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -715,127 +649,6 @@ export function AdminDashboard() {
             <Button onClick={handleSaveCertificate} className="bg-[#c6930a] hover:bg-[#a37808]">
               <Save className="h-4 w-4 mr-2" />
               Save Certificate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Quiz Creator Dialog */}
-      <Dialog open={isCreatingQuiz} onOpenChange={setIsCreatingQuiz}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#c6930a]">Create New Quiz</DialogTitle>
-            <DialogDescription>
-              Build a comprehensive quiz with multiple choice questions
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Quiz Title</Label>
-                <Input value={quizTitle} onChange={(e) => setQuizTitle(e.target.value)} placeholder="e.g., Leadership Assessment" />
-              </div>
-              <div className="space-y-2">
-                <Label>Track</Label>
-                <Select value={quizTrack} onValueChange={setQuizTrack}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select track" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {trackOrder.map((trackId) => (
-                      <SelectItem key={trackId} value={trackId}>
-                        {trainingData[trackId].name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Duration</Label>
-                <Input value={quizDuration} onChange={(e) => setQuizDuration(e.target.value)} placeholder="e.g., 15 mins" />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Questions</Label>
-                <Button size="sm" onClick={handleAddQuestion} className="bg-[#c6930a] hover:bg-[#a37808]">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Question
-                </Button>
-              </div>
-
-              {quizQuestions.map((question, qIndex) => (
-                <div key={qIndex} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 space-y-3">
-                      <div className="space-y-2">
-                        <Label className="text-sm">Question {qIndex + 1}</Label>
-                        <Textarea 
-                          value={question.question}
-                          onChange={(e) => {
-                            const newQuestions = [...quizQuestions];
-                            newQuestions[qIndex].question = e.target.value;
-                            setQuizQuestions(newQuestions);
-                          }}
-                          placeholder="Enter your question"
-                          rows={2}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm">Answer Options</Label>
-                        {question.options.map((option: string, optIndex: number) => (
-                          <div key={optIndex} className="flex items-center gap-2">
-                            <input 
-                              type="radio" 
-                              name={`correct-${qIndex}`}
-                              checked={question.correctAnswer === optIndex}
-                              onChange={() => {
-                                const newQuestions = [...quizQuestions];
-                                newQuestions[qIndex].correctAnswer = optIndex;
-                                setQuizQuestions(newQuestions);
-                              }}
-                              className="text-[#c6930a]"
-                            />
-                            <Input 
-                              value={option}
-                              onChange={(e) => {
-                                const newQuestions = [...quizQuestions];
-                                newQuestions[qIndex].options[optIndex] = e.target.value;
-                                setQuizQuestions(newQuestions);
-                              }}
-                              placeholder={`Option ${optIndex + 1}`}
-                              className="text-sm"
-                            />
-                          </div>
-                        ))}
-                        <p className="text-xs text-gray-500">Select the correct answer using the radio button</p>
-                      </div>
-                    </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleDeleteQuestion(qIndex)}
-                      className="text-red-600"
-                      disabled={quizQuestions.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreatingQuiz(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveQuiz} className="bg-[#c6930a] hover:bg-[#a37808]">
-              <Save className="h-4 w-4 mr-2" />
-              Create Quiz
             </Button>
           </DialogFooter>
         </DialogContent>

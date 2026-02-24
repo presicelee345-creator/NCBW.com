@@ -11,19 +11,6 @@ export const trackOrder = [
   "parliamentarian",
 ];
 
-// Track progress - percentage completion for each track
-export const trackProgress: Record<string, number> = {
-  president: 65,
-  "vice-president": 42,
-  "second-vice-president": 28,
-  "third-vice-president": 15,
-  treasurer: 0,
-  "financial-secretary": 0,
-  "corresponding-secretary": 0,
-  chaplain: 0,
-  parliamentarian: 0,
-};
-
 export const trainingData: Record<string, any> = {
   president: {
     name: "President",
@@ -39,26 +26,31 @@ export const trainingData: Record<string, any> = {
             title: "What is Strategic Planning?",
             platform: "LinkedIn Learning",
             duration: "20 mins",
+            link: "https://www.linkedin.com/learning/strategic-planning-foundations",
           },
           {
             title: "Creating Your Personal Leadership Plan",
             platform: "Coursera",
             duration: "45 mins",
+            link: "https://www.coursera.org/learn/leadership-principles",
           },
           {
             title: "Leadership Fundamentals",
             platform: "YouTube by FutureLearn",
             duration: "30 mins",
+            link: "https://www.youtube.com/watch?v=Vr2bBXD8wgk",
           },
           {
             title: "Strategic Thinking",
             platform: "LinkedIn Learning",
             duration: "50 mins",
+            link: "https://www.linkedin.com/learning/strategic-thinking",
           },
           {
             title: "Defining Your Leadership Values and Vision",
             platform: "Coursera",
             duration: "30 mins",
+            link: "https://www.coursera.org/learn/leadership-and-influence",
           },
         ],
         quiz: {
@@ -75,26 +67,31 @@ export const trainingData: Record<string, any> = {
             title: "Introduction to Public Speaking",
             platform: "YouTube by Udemy",
             duration: "30 mins",
+            link: "https://www.youtube.com/watch?v=K0pxo-dS9Hc",
           },
           {
             title: "Speak Confidently and Improve Communication Skills",
             platform: "Coursera",
             duration: "45 mins",
+            link: "https://www.coursera.org/learn/public-speaking",
           },
           {
             title: "Public Speaking Essentials",
             platform: "Skillshare",
             duration: "30 mins",
+            link: "https://www.skillshare.com/classes/public-speaking",
           },
           {
             title: "Effective Communication in the Workplace",
             platform: "LinkedIn Learning",
             duration: "45 mins",
+            link: "https://www.linkedin.com/learning/communicating-with-confidence",
           },
           {
             title: "Confidence on Camera",
             platform: "YouTube by Stanford",
             duration: "50 mins",
+            link: "https://www.youtube.com/watch?v=XIXvKKEQQJo",
           },
         ],
         quiz: {
@@ -111,26 +108,31 @@ export const trainingData: Record<string, any> = {
             title: "Managing Conflict in Teams",
             platform: "LinkedIn Learning",
             duration: "40 mins",
+            link: "https://www.linkedin.com/learning/managing-team-conflict",
           },
           {
             title: "Resolving Conflict in the Workplace",
             platform: "Coursera",
             duration: "50 mins",
+            link: "https://www.coursera.org/learn/conflict-resolution",
           },
           {
             title: "Conflict Resolution Skills",
             platform: "Skillshare",
             duration: "30 mins",
+            link: "https://www.skillshare.com/classes/conflict-resolution",
           },
           {
             title: "Conflict Resolution at Work",
             platform: "YouTube by UC Berkeley",
             duration: "40 mins",
+            link: "https://www.youtube.com/watch?v=gIVTd5euedk",
           },
           {
             title: "Introduction to Negotiation",
             platform: "YouTube by Yale",
             duration: "60 mins",
+            link: "https://www.youtube.com/watch?v=1MXIrDqiZKE",
           },
         ],
         quiz: {
@@ -147,26 +149,31 @@ export const trainingData: Record<string, any> = {
             title: "Effective Delegation Skills",
             platform: "LinkedIn Learning",
             duration: "35 mins",
+            link: "https://www.linkedin.com/learning/delegating-tasks-to-your-team",
           },
           {
             title: "Time Management Tips",
             platform: "Coursera",
             duration: "30 mins",
+            link: "https://www.coursera.org/learn/work-smarter-not-harder",
           },
           {
             title: "Introduction to Time Management",
             platform: "Skillshare",
             duration: "25 mins",
+            link: "https://www.skillshare.com/classes/time-management",
           },
           {
             title: "Delegating Effectively",
             platform: "YouTube by LinkedIn Learning",
             duration: "40 mins",
+            link: "https://www.youtube.com/watch?v=9yJWKwPAVoc",
           },
           {
             title: "Mastering Prioritization",
             platform: "YouTube by Udemy",
             duration: "30 mins",
+            link: "https://www.youtube.com/watch?v=5-0E75a9AJc",
           },
         ],
         quiz: {
@@ -183,26 +190,31 @@ export const trainingData: Record<string, any> = {
             title: "Ethics and Organizational Culture",
             platform: "YouTube by Harvard",
             duration: "45 mins",
+            link: "https://www.youtube.com/watch?v=6mHEy-r0s5U",
           },
           {
             title: "What is Organizational Culture?",
             platform: "LinkedIn Learning",
             duration: "30 mins",
+            link: "https://www.linkedin.com/learning/organizational-culture",
           },
           {
             title: "Building an Inclusive Culture",
             platform: "Coursera",
             duration: "40 mins",
+            link: "https://www.coursera.org/learn/diversity-inclusion-culture",
           },
           {
             title: "Ethics for Leaders",
             platform: "YouTube by FutureLearn",
             duration: "45 mins",
+            link: "https://www.youtube.com/watch?v=mXVbGDUX-5o",
           },
           {
             title: "Culture and Leadership",
             platform: "YouTube by Skillshare",
             duration: "50 mins",
+            link: "https://www.youtube.com/watch?v=k_F-7a4KLFk",
           },
         ],
         quiz: {

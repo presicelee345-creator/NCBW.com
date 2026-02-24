@@ -3,9 +3,13 @@ import { Badge } from "./ui/badge";
 import { UserCircle, Mail, MapPin, Award, Clock } from "lucide-react";
 import { Progress } from "./ui/progress";
 
-export function ProfileView() {
-  // Mock data for total time tracking
-  const totalTimeMinutes = 456; // Total minutes spent on courses
+interface ProfileViewProps {
+  user: any;
+}
+
+export function ProfileView({ user }: ProfileViewProps) {
+  // Calculate total time (placeholder - would be calculated from actual course completions)
+  const totalTimeMinutes = 0;
   const hours = Math.floor(totalTimeMinutes / 60);
   const minutes = totalTimeMinutes % 60;
   
@@ -19,15 +23,22 @@ export function ProfileView() {
             <UserCircle className="w-16 h-16 text-[#c6930a]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-2xl text-black mb-2">Trainee Profile</h3>
+            <h3 className="text-2xl text-black mb-2">
+              {user?.firstName} {user?.lastName}
+            </h3>
             <div className="space-y-2 text-gray-700">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#c6930a]" />
-                <span>trainee@ncbwqueencity.org</span>
+                <span>{user?.email}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#c6930a]" />
                 <span>Queen City Metropolitan Chapter</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-[#c6930a] text-white">
+                  {user?.role === 'admin' ? 'Administrator' : 'Trainee'}
+                </Badge>
               </div>
             </div>
           </div>
@@ -47,17 +58,12 @@ export function ProfileView() {
               <p className="text-xs text-gray-500 mt-1">Active engagement time</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-600 mb-1">Overall Progress</p>
-              <p className="text-2xl text-black">38%</p>
-              <p className="text-xs text-gray-500 mt-1">Across all tracks</p>
+              <p className="text-sm text-gray-600 mb-1">Selected Track</p>
+              <p className="text-lg text-black capitalize">
+                {user?.selectedTrack?.replace(/-/g, ' ') || 'Not selected'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Current focus area</p>
             </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Completion Status</p>
-              <p className="text-sm text-[#c6930a]">38 of 100 modules</p>
-            </div>
-            <Progress value={38} className="h-2" />
           </div>
         </div>
       </Card>
@@ -77,17 +83,16 @@ export function ProfileView() {
             </p>
           </div>
           <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-3">Active Tracks</p>
+            <p className="text-sm text-gray-600 mb-3">Account Status</p>
             <div className="flex flex-wrap gap-2">
-              <Badge className="bg-[#c6930a] text-black hover:bg-[#c6930a]/90">
-                Leadership Training
+              <Badge className="bg-green-100 text-green-700 border-green-300">
+                Active
               </Badge>
-              <Badge
-                variant="outline"
-                className="border-gray-300 text-gray-700"
-              >
-                In Progress
-              </Badge>
+              {user?.selectedTrack && (
+                <Badge className="bg-[#c6930a]/10 text-[#c6930a] border-[#c6930a]/30">
+                  Track Selected
+                </Badge>
+              )}
             </div>
           </div>
         </div>
