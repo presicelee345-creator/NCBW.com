@@ -1,4 +1,5 @@
-// Local storage-based backend replacement for Supabase
+// LocalStorage-based backend for NC100BW Training Dashboard
+// All data is stored in browser localStorage
 
 interface User {
   id: string;
@@ -38,32 +39,72 @@ interface Session {
   createdAt: string;
 }
 
+// Storage keys
+const USERS_KEY = 'nc100bw_users';
+const PROGRESS_KEY = 'nc100bw_progress';
+const SESSIONS_KEY = 'nc100bw_sessions';
+
+// Initialize with default admin if no users exist
+const initializeStorage = () => {
+  if (!localStorage.getItem(USERS_KEY)) {
+    const defaultAdmin: User = {
+      id: 'admin-001',
+      email: 'admin@nc100bw.org',
+      password: 'admin123',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'admin',
+      selectedTrack: null,
+      createdAt: new Date().toISOString(),
+    };
+    
+    const defaultTrainee: User = {
+      id: 'trainee-001',
+      email: 'trainee@nc100bw.org',
+      password: 'trainee123',
+      firstName: 'Demo',
+      lastName: 'Trainee',
+      role: 'trainee',
+      selectedTrack: null,
+      createdAt: new Date().toISOString(),
+    };
+    
+    localStorage.setItem(USERS_KEY, JSON.stringify([defaultAdmin, defaultTrainee]));
+  }
+  if (!localStorage.getItem(PROGRESS_KEY)) {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(SESSIONS_KEY)) {
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify([]));
+  }
+};
+
 // Helper functions
 const getUsers = (): User[] => {
-  const users = localStorage.getItem('users');
+  const users = localStorage.getItem(USERS_KEY);
   return users ? JSON.parse(users) : [];
 };
 
 const saveUsers = (users: User[]) => {
-  localStorage.setItem('users', JSON.stringify(users));
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 };
 
 const getProgress = (): Progress[] => {
-  const progress = localStorage.getItem('progress');
+  const progress = localStorage.getItem(PROGRESS_KEY);
   return progress ? JSON.parse(progress) : [];
 };
 
 const saveProgress = (progress: Progress[]) => {
-  localStorage.setItem('progress', JSON.stringify(progress));
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
 };
 
 const getSessions = (): Session[] => {
-  const sessions = localStorage.getItem('sessions');
+  const sessions = localStorage.getItem(SESSIONS_KEY);
   return sessions ? JSON.parse(sessions) : [];
 };
 
 const saveSessions = (sessions: Session[]) => {
-  localStorage.setItem('sessions', JSON.stringify(sessions));
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
 };
 
 const generateId = () => {
@@ -74,33 +115,14 @@ const generateToken = () => {
   return 'token_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
 };
 
-// Initialize default admin account
-const initializeDefaultAdmin = () => {
-  const users = getUsers();
-  if (users.length === 0) {
-    const adminUser: User = {
-      id: 'admin-001',
-      email: 'admin@nc100bw.org',
-      password: 'admin123',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: 'admin',
-      selectedTrack: null,
-      createdAt: new Date().toISOString(),
-    };
-    saveUsers([adminUser]);
-  }
-};
-
-// Initialize on load
-initializeDefaultAdmin();
+// Initialize storage
+initializeStorage();
 
 // Auth API
 export const localAuthApi = {
   signup: (email: string, password: string, firstName: string, lastName: string, role: 'admin' | 'trainee' = 'trainee') => {
     const users = getUsers();
     
-    // Check if user already exists
     if (users.find(u => u.email === email)) {
       throw new Error('User with this email already exists');
     }
@@ -211,7 +233,6 @@ export const localTrackApi = {
     users[userIndex].selectedTrack = trackId;
     saveUsers(users);
     
-    // Initialize progress for this track
     const allProgress = getProgress();
     const existingProgress = allProgress.find(p => p.userId === session.userId && p.trackId === trackId);
     
@@ -265,7 +286,6 @@ export const localProgressApi = {
     const allProgress = getProgress();
     let userProgress = allProgress.find(p => p.userId === session.userId && p.trackId === trackId);
     
-    // Initialize if doesn't exist
     if (!userProgress) {
       userProgress = {
         userId: session.userId,
@@ -303,7 +323,6 @@ export const localProgressApi = {
     
     const userProgress = allProgress[progressIndex];
     
-    // Initialize module if doesn't exist
     if (!userProgress.modules[moduleIndex]) {
       userProgress.modules[moduleIndex] = {
         completed: false,
@@ -313,13 +332,11 @@ export const localProgressApi = {
       };
     }
     
-    // Mark course as complete
     userProgress.modules[moduleIndex].courses[courseIndex] = {
       completed: true,
       completedAt: new Date().toISOString(),
     };
     
-    // Calculate overall progress
     const totalModules = Object.keys(userProgress.modules).length;
     const completedModules = Object.values(userProgress.modules).filter(m => m.completed).length;
     userProgress.overallProgress = Math.round((completedModules / totalModules) * 100);
@@ -355,7 +372,6 @@ export const localQuizApi = {
     const userProgress = allProgress[progressIndex];
     const passed = score >= 70;
     
-    // Update module quiz status
     if (!userProgress.modules[moduleIndex]) {
       userProgress.modules[moduleIndex] = {
         completed: false,
@@ -372,7 +388,6 @@ export const localQuizApi = {
     if (passed) {
       userProgress.modules[moduleIndex].completed = true;
       
-      // Unlock next module
       const nextModuleIndex = moduleIndex + 1;
       if (!userProgress.modules[nextModuleIndex]) {
         userProgress.modules[nextModuleIndex] = {
@@ -384,7 +399,6 @@ export const localQuizApi = {
       }
     }
     
-    // Calculate overall progress
     const totalModules = Object.keys(userProgress.modules).length;
     const completedModules = Object.values(userProgress.modules).filter(m => m.completed).length;
     userProgress.overallProgress = Math.round((completedModules / totalModules) * 100);
@@ -472,11 +486,10 @@ export const localAdminApi = {
 // Notification API
 export const localNotificationApi = {
   sendEmail: (accessToken: string, to: string, subject: string, body: string) => {
-    // Simulate email sending
     console.log('Email sent:', { to, subject, body });
     return {
       success: true,
-      message: 'Email notification simulated (local mode)',
+      message: 'Email notification simulated (local storage mode)',
     };
   },
 };

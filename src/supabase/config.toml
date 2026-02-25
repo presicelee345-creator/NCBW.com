@@ -1,0 +1,5 @@
+# Supabase configuration
+# Edge functions are disabled for this project
+
+[functions]
+enabled = false

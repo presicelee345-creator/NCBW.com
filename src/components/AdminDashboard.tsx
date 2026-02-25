@@ -4,47 +4,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Badge } from "./ui/badge";
-import { Download, Mail, Loader2, Plus, Edit, Trash2, Save } from "lucide-react";
+import { Download, Mail, Loader2, Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
 import { adminApi } from "../utils/api";
 import { ReportsExample } from "./ReportsExample";
 import { CertificateGenerator } from "./CertificateGenerator";
-import { EmailTemplateManager } from "./EmailTemplateManager";
 import { CustomReportBuilder } from "./CustomReportBuilder";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { trainingData } from "../data/trainingData";
 
 interface AdminDashboardProps {
   accessToken: string;
 }
-
-// Track order for certificates
-const trackOrder = ["president", "vice-president", "secretary", "treasurer", "membership-chair", "communication-director", "event-coordinator", "fundraising-chair", "advocacy-lead"];
 
 export function AdminDashboard({ accessToken }: AdminDashboardProps) {
   const [users, setUsers] = useState<any[]>([]);
   const [progressRecords, setProgressRecords] = useState<any[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
-  
-  // Certificate management state
   const [certificates, setCertificates] = useState<any[]>([
-    { id: 1, name: "Leadership Excellence", track: "President", template: "Classic Gold", createdDate: "2024-01-15" },
-    { id: 2, name: "Vice President Achievement", track: "Vice President", template: "Modern Black", createdDate: "2024-01-20" },
+    {
+      id: 1,
+      name: "Leadership Track Certificate",
+      track: "President",
+      template: "Classic Gold",
+      createdDate: "Feb 1, 2026"
+    },
+    {
+      id: 2,
+      name: "Completion Certificate",
+      track: "Treasurer",
+      template: "Modern Black & Gold",
+      createdDate: "Feb 5, 2026"
+    }
   ]);
-  const [isEditingCertificate, setIsEditingCertificate] = useState(false);
-  const [certificateTitle, setCertificateTitle] = useState("");
-  const [certificateMessage, setCertificateMessage] = useState("For successfully completing the comprehensive leadership training program");
-  const [certificateFooter, setCertificateFooter] = useState("Demonstrating dedication, knowledge, and commitment to excellence");
-  
-  // Email management state
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [currentEmailType, setCurrentEmailType] = useState<string>("");
-  const [currentRecipient, setCurrentRecipient] = useState<any>(null);
 
   useEffect(() => {
     loadUsers();
@@ -109,55 +100,18 @@ export function AdminDashboard({ accessToken }: AdminDashboardProps) {
   const getUserProgress = (userId: string) => {
     return progressRecords.filter(p => p.userId === userId);
   };
-  
-  // Certificate handlers
+
   const handleCreateCertificate = () => {
-    setCertificateTitle("");
-    setCertificateMessage("For successfully completing the comprehensive leadership training program");
-    setCertificateFooter("Demonstrating dedication, knowledge, and commitment to excellence");
-    setIsEditingCertificate(true);
-    toast.success("Opening certificate editor...");
+    toast.success("Certificate creation coming soon!");
   };
-  
-  const handleEditCertificate = (certId: number) => {
-    const cert = certificates.find(c => c.id === certId);
-    if (cert) {
-      setCertificateTitle(cert.name);
-      setIsEditingCertificate(true);
-      toast.success("Opening certificate editor...");
-    }
+
+  const handleEditCertificate = (id: number) => {
+    toast.info(`Edit certificate #${id}`);
   };
-  
-  const handleDeleteCertificate = (certId: number) => {
-    setCertificates(certificates.filter(c => c.id !== certId));
-    toast.success("Certificate deleted successfully!");
-  };
-  
-  const handleSaveCertificate = () => {
-    const newCert = {
-      id: certificates.length + 1,
-      name: certificateTitle || "New Certificate",
-      track: "All Tracks",
-      template: "Classic Gold",
-      createdDate: new Date().toISOString().split('T')[0],
-    };
-    setCertificates([...certificates, newCert]);
-    setIsEditingCertificate(false);
-    toast.success("Certificate saved successfully!");
-  };
-  
-  // Email handlers
-  const handleEditEmailTemplate = (emailType: string) => {
-    setCurrentEmailType(emailType);
-    setIsEmailDialogOpen(true);
-    toast.success("Opening email template editor...");
-  };
-  
-  const handleSendBulkEmail = (emailType: string) => {
-    toast.success(`Sending ${emailType} emails to all trainees...`);
-    setTimeout(() => {
-      toast.success(`${emailType} emails sent successfully!`);
-    }, 1500);
+
+  const handleDeleteCertificate = (id: number) => {
+    setCertificates(certificates.filter(cert => cert.id !== id));
+    toast.success("Certificate deleted");
   };
 
   return (
@@ -628,115 +582,6 @@ export function AdminDashboard({ accessToken }: AdminDashboardProps) {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Certificate Editor Dialog */}
-      <Dialog open={isEditingCertificate} onOpenChange={setIsEditingCertificate}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#c6930a]">Certificate Editor</DialogTitle>
-            <DialogDescription>
-              Customize certificate content and styling
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label>Certificate Name</Label>
-              <Input 
-                value={certificateTitle} 
-                onChange={(e) => setCertificateTitle(e.target.value)}
-                placeholder="e.g., Leadership Excellence Certificate"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Assigned Track</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select track" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tracks</SelectItem>
-                  {trackOrder.map((trackId) => (
-                    <SelectItem key={trackId} value={trackId}>
-                      {trainingData[trackId].name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Main Message</Label>
-              <Textarea 
-                value={certificateMessage}
-                onChange={(e) => setCertificateMessage(e.target.value)}
-                placeholder="Primary achievement message"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Footer Message</Label>
-              <Textarea 
-                value={certificateFooter}
-                onChange={(e) => setCertificateFooter(e.target.value)}
-                placeholder="Additional accomplishment details"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Certificate Template</Label>
-              <Select defaultValue="default">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default - Gold & Black</SelectItem>
-                  <SelectItem value="gold">Premium Gold</SelectItem>
-                  <SelectItem value="elegant">Elegant Minimal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h3 className="text-sm mb-2">Certificate Preview</h3>
-              <div className="bg-gradient-to-br from-black to-gray-800 p-4 rounded">
-                <div className="bg-white border-8 border-[#c6930a] rounded p-6 text-center text-xs relative">
-                  <div className="absolute top-2 left-2 right-2 bottom-2 border border-[#c6930a] rounded pointer-events-none"></div>
-                  <div className="text-2xl mb-1">👑</div>
-                  <div className="text-[#c6930a] text-xs tracking-wider mb-1">NCBW</div>
-                  <div className="text-[#c6930a] tracking-widest mb-2">CERTIFICATE</div>
-                  <div className="text-xs text-gray-600 mb-1">{certificateMessage}</div>
-                  <div className="text-base mb-2 underline decoration-[#c6930a]">[Name]</div>
-                  <div className="text-xs text-gray-600">{certificateFooter}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditingCertificate(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveCertificate} className="bg-[#c6930a] hover:bg-[#a37808]">
-              <Save className="h-4 w-4 mr-2" />
-              Save Certificate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Email Template Manager Dialog */}
-      <EmailTemplateManager 
-        isOpen={isEmailDialogOpen}
-        onClose={() => setIsEmailDialogOpen(false)}
-        emailType={currentEmailType}
-        recipientName={currentRecipient?.name}
-        recipientEmail={currentRecipient?.email}
-        trackName={currentRecipient?.track}
-      />
     </div>
   );
 }

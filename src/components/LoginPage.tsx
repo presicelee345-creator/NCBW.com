@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
-import { UserCircle, Lock, Mail, AlertCircle } from 'lucide-react';
+import { UserCircle, Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { authApi } from '../utils/api';
 
@@ -20,6 +20,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const [signupFirstName, setSignupFirstName] = useState('');
   const [signupLastName, setSignupLastName] = useState('');
@@ -27,6 +28,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [isSignupLoading, setIsSignupLoading] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [resetEmail, setResetEmail] = useState('');
   const [isResetLoading, setIsResetLoading] = useState(false);
@@ -86,30 +89,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
       if (response.success) {
         toast.success(`Account created for ${signupFirstName} ${signupLastName}!`);
-        
-        // Automatically sign in the user
-        try {
-          const signinResponse = await authApi.signin(signupEmail, signupPassword);
-          
-          if (signinResponse.success) {
-            toast.success('Logging you in...');
-            onLogin(
-              signinResponse.user.role,
-              signinResponse.user.email,
-              signinResponse.accessToken,
-              signinResponse.user
-            );
-          }
-        } catch (signinError: any) {
-          // If auto-login fails, just show success message and let user login manually
-          toast.error('Account created! Please log in manually.');
-          // Reset form
-          setSignupFirstName('');
-          setSignupLastName('');
-          setSignupEmail('');
-          setSignupPassword('');
-          setSignupConfirmPassword('');
-        }
+        // Reset form
+        setSignupFirstName('');
+        setSignupLastName('');
+        setSignupEmail('');
+        setSignupPassword('');
+        setSignupConfirmPassword('');
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to create account');
@@ -189,13 +174,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
                     <Input
                       id="login-password"
-                      type="password"
+                      type={showLoginPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       className="pl-10"
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    >
+                      {showLoginPassword ? <EyeOff /> : <Eye />}
+                    </button>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -299,13 +291,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
                     <Input
                       id="signup-password"
-                      type="password"
+                      type={showSignupPassword ? 'text' : 'password'}
                       placeholder="Create a password"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       className="pl-10"
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                    >
+                      {showSignupPassword ? <EyeOff /> : <Eye />}
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -314,13 +313,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
                     <Input
                       id="signup-confirm-password"
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
                       value={signupConfirmPassword}
                       onChange={(e) => setSignupConfirmPassword(e.target.value)}
                       className="pl-10"
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff /> : <Eye />}
+                    </button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full bg-[#c6930a] hover:bg-[#a07808] text-white" disabled={isSignupLoading}>
